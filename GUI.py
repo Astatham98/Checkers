@@ -1,5 +1,6 @@
 import pygame
-import random
+import math
+from main import Board, Puck
 
 from pygame.constants import BUTTON_LEFT
 
@@ -8,6 +9,14 @@ class GUI:
         self.WIDTH = 800
         self.HEIGHT = 900
         self.FPS = 30
+        fpsClock = pygame.time.Clock()
+
+        
+        self.board = Board()
+        #self.board.fillPucks()
+        self.puckBag = self.board.getPuckBag()
+        self.SelectedPuck = None
+        self.whosMove = 'White'
 
         # Define Colors 
         self.WHITE = (255, 255, 255)
@@ -31,19 +40,26 @@ class GUI:
                 if event.type == pygame.QUIT: #The user closed the window!
                     running = False #Stop running
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    x,y = pygame.mouse.get_pos()
                     if self.b2.collidepoint(pygame.mouse.get_pos()):
                         running = False #Stop running
                     if self.b1.collidepoint(pygame.mouse.get_pos()):
+                        # Resets the screen
                         self.screen.fill(self.WHITE)
                         self.drawSquares(self.screen)
                         self.drawButtons(self.screen)
-            
-           
-            
-           
+                        self.drawPucks(self.screen)
+                        self.SelectedPuck =  None
+                        self.board.resetBoard()
+                        self.puckBag = self.board.getPuckBag()
+                        self.whosMove = 'White'
+                    if x < 800 and y < 800:
+                        x, y = math.floor(x/100), math.floor(y/100)
+                        self.movePuck(x, y)
+                        
             
             pygame.display.update()
-    
+            fpsClock.tick(self.FPS)
         pygame.quit() #Close the window
 
 
@@ -73,6 +89,7 @@ class GUI:
     def drawButtons(self, screen):
         self.b1 = self.button(screen, (50, 825), 'New Game.')
         self.b2 = self.button(screen, (525, 825), 'Quit.')
+        self.b3 = self.button(screen, (350, 825), self.whosMove)
         
     def drawPucks(self, screen):
         for i in range(8): 
@@ -87,8 +104,54 @@ class GUI:
                         pygame.draw.circle(screen, self.TAN, ((i*100)+50, (j*100)+50), 45)
                     else: 
                         pygame.draw.circle(screen, self.RED, ((i*100)+50, (j*100)+550), 45)  
-        
                         
+    def getPuckByCoord(self, coord):
+        try:
+            return [x for x in self.puckBag if list(coord) == x.getPos()][0]
+        except IndexError:
+            return None
+    
+    def movePuck(self, x, y):
+        desiredPuck = self.getPuckByCoord((x, y)) # returns the puck or none given the coordinate
+        if desiredPuck != None and desiredPuck.getColor() == self.whosMove:
+            if self.SelectedPuck != None: # If there is already a selected puck return it to its original position
+                chosenColor = self.TAN if self.SelectedPuck.getColor() == 'White' else self.RED
+                nx, ny = self.SelectedPuck.getPos()
+                pygame.draw.rect(self.screen, self.BLACK, (nx*100, ny*100, 100, 100))
+                pygame.draw.circle(self.screen, chosenColor, ((nx*100)+50, (ny*100)+50), 45)
+                
+            # Draw a green outline around the puck to show its selected
+            self.SelectedPuck = desiredPuck
+            chosenColor = self.TAN if desiredPuck.getColor() == 'White' else self.RED
+            pygame.draw.rect(self.screen, self.GREEN, (x*100, y*100, 100, 100))
+            pygame.draw.circle(self.screen, chosenColor, ((x*100)+50, (y*100)+50), 45) 
+            
+        elif self.SelectedPuck != None:
+            # If there is a selected puck, move it
+            nx, ny = self.SelectedPuck.getPos()
+            if self.board.isValidMove(self.SelectedPuck, [x, y]):
+                middlePuck = self.board.isValidMove(self.SelectedPuck, [x, y]) if type(self.board.isValidMove(self.SelectedPuck, [x, y])) is not bool else None
+                if middlePuck is not None:
+                    print(len(self.puckBag))
+                    nnx, nny = middlePuck.getPos()
+                    pygame.draw.rect(self.screen, self.BLACK, (nnx*100, nny*100, 100, 100))
+                    self.puckBag.remove(middlePuck)
+                    print(len(self.puckBag))
+                self.board.movePuck(self.SelectedPuck, [x, y])
+                chosenColor = self.TAN if self.SelectedPuck.getColor() == 'White' else self.RED
+                pygame.draw.rect(self.screen, self.BLACK, (nx*100, ny*100, 100, 100)) #new rectangle at the old position
+                pygame.draw.circle(self.screen, chosenColor, ((x*100)+50, (y*100)+50), 45) # Move puck on GUI
+                self.switchColors()
+                self.drawButtons(self.screen)
+            else:
+                print('error found')
+                pass
+    
+    def switchColors(self):
+        if self.whosMove == 'White':
+            self.whosMove = 'Black'
+        else:
+            self.whosMove = 'White'
         
 if __name__ == '__main__':
     b = GUI()
