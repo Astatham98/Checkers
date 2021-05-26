@@ -71,6 +71,9 @@ class Board:
             if abs(new_pos1 - current_pos1) > 2 or abs(new_pos2 - current_pos2) > 2:
                 print('too great')
                 return False
+            elif self.getPuckByCoord((new_pos1, new_pos2)) is not None:
+                print(self.getPuckByCoord((new_pos1, new_pos2)), 'here')
+                return False
             
             else:
                 # Finds the middle tile and returns the middle puck or None
@@ -89,7 +92,9 @@ class Board:
             return False
         elif not self.correctDirection(puck, current_pos2, new_pos2):
             return False
-            
+        elif self.getPuckByCoord((new_pos1, new_pos2)) is not None:
+            print(self.getPuckByCoord((new_pos1, new_pos2)), 'here')
+            return False
         
         return True
             

@@ -2,8 +2,6 @@ import pygame
 import math
 from main import Board, Puck
 
-from pygame.constants import BUTTON_LEFT
-
 class GUI:
     def __init__(self):
         self.WIDTH = 800
@@ -132,17 +130,17 @@ class GUI:
             if self.board.isValidMove(self.SelectedPuck, [x, y]):
                 middlePuck = self.board.isValidMove(self.SelectedPuck, [x, y]) if type(self.board.isValidMove(self.SelectedPuck, [x, y])) is not bool else None
                 if middlePuck is not None:
-                    print(len(self.puckBag))
                     nnx, nny = middlePuck.getPos()
                     pygame.draw.rect(self.screen, self.BLACK, (nnx*100, nny*100, 100, 100))
                     self.puckBag.remove(middlePuck)
-                    print(len(self.puckBag))
+                    
                 self.board.movePuck(self.SelectedPuck, [x, y])
                 chosenColor = self.TAN if self.SelectedPuck.getColor() == 'White' else self.RED
                 pygame.draw.rect(self.screen, self.BLACK, (nx*100, ny*100, 100, 100)) #new rectangle at the old position
                 pygame.draw.circle(self.screen, chosenColor, ((x*100)+50, (y*100)+50), 45) # Move puck on GUI
                 self.switchColors()
                 self.drawButtons(self.screen)
+                print(self.checkEndCond())
             else:
                 print('error found')
                 pass
@@ -152,6 +150,13 @@ class GUI:
             self.whosMove = 'Black'
         else:
             self.whosMove = 'White'
+            
+    def checkEndCond(self):
+        first = self.puckBag[0]
+        for x in self.puckBag:
+            if x.getColor != first.getColor():
+                return False
+        return True
         
 if __name__ == '__main__':
     b = GUI()
