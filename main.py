@@ -14,8 +14,8 @@ class Puck:
     def updatePos(self, newPos):
         self.pos = newPos
 
-    def setKing(self, king):
-        self.isKing = king
+    def setKing(self):
+        self.isKing = True
 
     def getPos(self):
         return self.pos

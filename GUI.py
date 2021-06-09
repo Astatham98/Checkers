@@ -9,6 +9,9 @@ class GUI:
         self.HEIGHT = 900
         self.FPS = 30
         fpsClock = pygame.time.Clock()
+        
+        self.crownImg  = pygame.image.load('crown.png')
+        self.crownImg = pygame.transform.scale(self.crownImg, (50, 50))
 
         self.board = Board()
         self.puckBag = self.board.getPuckBag()
@@ -132,9 +135,14 @@ class GUI:
                 if self.checkEndCond():
                     self.completedGame()
                     print('end game condition is: ' + str(self.checkEndCond()))
+                
                 else:
-                    self.switchColors()
-                    self.drawButtons(self.screen)
+                    if self.checkKingCond():
+                        print((x, y), (x*100, y*100))
+                        self.screen.blit(self.crownImg, ((x*100)+20, (y*100)+20))
+                
+                self.switchColors()
+                self.drawButtons(self.screen)
             else:
                 print('error found')
                 pass
@@ -159,6 +167,18 @@ class GUI:
             if x.getColor() != first.getColor():
                 return False
         return True
+    
+    def checkKingCond(self):
+        for puck in self.puckBag:
+            if puck.getColor() == 'White':
+                if puck.getPos()[1] == 7:
+                    puck.setKing()
+                    return True
+        
+            elif puck.getColor() == 'Black':
+                if puck.getPos()[1] == 0:
+                    puck.setKing()
+                    return True
 
     def resetBoard(self):
         # Resets the screen
