@@ -103,6 +103,8 @@ class GUI:
 
     def movePuck(self, x, y):
         desiredPuck = self.getPuckByCoord((x, y))  # returns the puck or none given the coordinate
+        self.reCheckKing()    
+    
         if desiredPuck is not None and desiredPuck.getColor() == self.whosMove and not self.completed:
             if self.SelectedPuck is not None:  # If there is already a selected puck return it to its original position
                 chosenColor = self.TAN if self.SelectedPuck.getColor() == 'White' else self.RED
@@ -115,6 +117,8 @@ class GUI:
             chosenColor = self.TAN if desiredPuck.getColor() == 'White' else self.RED
             pygame.draw.rect(self.screen, self.GREEN, (x * 100, y * 100, 100, 100))
             pygame.draw.circle(self.screen, chosenColor, ((x * 100) + 50, (y * 100) + 50), 45)
+            if self.SelectedPuck.getKing():
+                self.screen.blit(self.crownImg, ((x*100)+20, (y*100)+20))
 
         elif self.SelectedPuck is not None:
             # If there is a selected puck, move it
@@ -137,8 +141,7 @@ class GUI:
                     print('end game condition is: ' + str(self.checkEndCond()))
                 
                 else:
-                    if self.checkKingCond():
-                        print((x, y), (x*100, y*100))
+                    if self.checkKingCond(self.SelectedPuck):
                         self.screen.blit(self.crownImg, ((x*100)+20, (y*100)+20))
                 
                 self.switchColors()
@@ -168,18 +171,23 @@ class GUI:
                 return False
         return True
     
-    def checkKingCond(self):
+    def checkKingCond(self, puck):
+        if puck.getColor() == 'White':
+            if puck.getPos()[1] == 7:
+                puck.setKing()
+                return True
+    
+        elif puck.getColor() == 'Black':
+            if puck.getPos()[1] == 0:
+                puck.setKing()
+                return True
+    
+    def reCheckKing(self):
         for puck in self.puckBag:
-            if puck.getColor() == 'White':
-                if puck.getPos()[1] == 7:
-                    puck.setKing()
-                    return True
-        
-            elif puck.getColor() == 'Black':
-                if puck.getPos()[1] == 0:
-                    puck.setKing()
-                    return True
-
+            if puck.getKing():
+                x,y = puck.getPos()
+                self.screen.blit(self.crownImg, ((x*100)+20, (y*100)+20))
+    
     def resetBoard(self):
         # Resets the screen
         self.screen.fill(self.WHITE)
