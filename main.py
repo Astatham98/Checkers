@@ -99,7 +99,6 @@ class Board:
             print(self.getPuckByCoord((new_pos1, new_pos2)), 'here')
             return False
 
-        print('this is not a knight move == ' + str(self.isNotKnight(current_pos1, current_pos2, new_pos1, new_pos2)))
         return True
 
     def isDiagonal(self, new_pos1, new_pos2, current_pos1, current_pos2):

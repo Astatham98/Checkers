@@ -14,6 +14,7 @@ class GUI:
         self.puckBag = self.board.getPuckBag()
         self.SelectedPuck = None
         self.whosMove = 'White'
+        self.completed = False
 
         # Define Colors 
         self.WHITE = (255, 255, 255)
@@ -41,15 +42,7 @@ class GUI:
                     if self.b2.collidepoint(pygame.mouse.get_pos()):
                         running = False  # Stop running
                     if self.b1.collidepoint(pygame.mouse.get_pos()):
-                        # Resets the screen
-                        self.screen.fill(self.WHITE)
-                        self.drawSquares(self.screen)
-                        self.drawButtons(self.screen)
-                        self.drawPucks(self.screen)
-                        self.SelectedPuck = None
-                        self.board.resetBoard()
-                        self.puckBag = self.board.getPuckBag()
-                        self.whosMove = 'White'
+                        self.resetBoard()
                     if x < 800 and y < 800:
                         x, y = math.floor(x / 100), math.floor(y / 100)
                         self.movePuck(x, y)
@@ -107,7 +100,7 @@ class GUI:
 
     def movePuck(self, x, y):
         desiredPuck = self.getPuckByCoord((x, y))  # returns the puck or none given the coordinate
-        if desiredPuck is not None and desiredPuck.getColor() == self.whosMove:
+        if desiredPuck is not None and desiredPuck.getColor() == self.whosMove and not self.completed:
             if self.SelectedPuck is not None:  # If there is already a selected puck return it to its original position
                 chosenColor = self.TAN if self.SelectedPuck.getColor() == 'White' else self.RED
                 nx, ny = self.SelectedPuck.getPos()
@@ -136,12 +129,23 @@ class GUI:
                 pygame.draw.rect(self.screen, self.BLACK,
                                  (nx * 100, ny * 100, 100, 100))  # new rectangle at the old position
                 pygame.draw.circle(self.screen, chosenColor, ((x * 100) + 50, (y * 100) + 50), 45)  # Move puck on GUI
-                self.switchColors()
-                self.drawButtons(self.screen)
-                print('end game condition is: ' + str(self.checkEndCond()))
+                if self.checkEndCond():
+                    self.completedGame()
+                    print('end game condition is: ' + str(self.checkEndCond()))
+                else:
+                    self.switchColors()
+                    self.drawButtons(self.screen)
             else:
                 print('error found')
                 pass
+
+    def completedGame(self):
+        self.completed = True
+        text = self.whosMove + " Wins!"
+        font = pygame.font.SysFont("Arial", 75)
+        text_render = font.render(text, 1, (0, 255, 0))
+        self.screen.blit(text_render, (250, 300))
+        
 
     def switchColors(self):
         if self.whosMove == 'White':
@@ -152,9 +156,21 @@ class GUI:
     def checkEndCond(self):
         first = self.puckBag[0]
         for x in self.puckBag:
-            if x.getColor != first.getColor():
+            if x.getColor() != first.getColor():
                 return False
         return True
+
+    def resetBoard(self):
+        # Resets the screen
+        self.screen.fill(self.WHITE)
+        self.drawSquares(self.screen)
+        self.drawButtons(self.screen)
+        self.drawPucks(self.screen)
+        self.SelectedPuck = None
+        self.board.resetBoard()
+        self.puckBag = self.board.getPuckBag()
+        self.whosMove = 'White'
+        self.completed = False
 
 
 if __name__ == '__main__':
